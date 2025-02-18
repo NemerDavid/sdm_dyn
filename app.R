@@ -7,6 +7,8 @@ library(rnaturalearthdata)
 library(tidyverse)
 library(shinyjs)
 
+
+
 ui <- fluidPage(
   useShinyjs(),  # Include shinyjs for loading spinner
   titlePanel("Interactive Species Map"),
@@ -14,6 +16,7 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       selectInput("species", "Select Species:", choices = NULL),  # Empty initially
+      selectInput("SSP", "Select SPP:", choices = NULL),
       sliderInput("dot_size", "Dot Size:", min = 1, max = 10, value = 1),
       
       checkboxGroupInput("category",    
@@ -47,6 +50,7 @@ server <- function(input, output, session) {
     
     # Update UI inputs dynamically after loading data
     updateSelectInput(session, "species", choices = unique(diff_sf3$species))
+    updateSelectInput(session, "SSP", choices = unique(diff_sf3$SSP))
     updateCheckboxGroupInput(session, "category", choices = levels(diff_sf3$category), selected = levels(diff_sf3$category)[15])
     
     # Store in reactive container
@@ -91,7 +95,7 @@ server <- function(input, output, session) {
     
     # Filter data based on user input
     filtered_data <- diff_sf3 %>%
-      filter(species == input$species & category %in% input$category)
+      filter(species == input$species & category %in% input$category & SSP==input$SSP)
     
     leaflet(filtered_data) %>%
       setView(lng = 1.888334, lat = 46.603354, zoom = 6) %>%
