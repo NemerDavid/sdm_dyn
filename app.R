@@ -1,5 +1,3 @@
-
-
 library(shiny)
 library(leaflet)
 library(sf)
@@ -8,8 +6,6 @@ library(rnaturalearth)
 library(rnaturalearthdata)
 library(tidyverse)
 library(shinyjs)
-
-
 
 ui <- fluidPage(
   useShinyjs(),  # Include shinyjs for loading spinner
@@ -32,10 +28,9 @@ ui <- fluidPage(
   )
 )
 
-
 server <- function(input, output, session) {
   
-  # Use shinyjs to show loading spinner
+  # Show loading modal
   showModal(modalDialog(
     title = "Loading Data",
     "Please wait while the data is being loaded...",
@@ -43,54 +38,23 @@ server <- function(input, output, session) {
     footer = NULL
   ))
   
-  # Load and process data asynchronously
+  # Define a reactive value to store the dataset
+  diff_sf3_reactive <- reactiveVal(NULL)
+  
   observe({
-    # Load the data
+    # Load the dataset
     diff_sf3 <- readRDS("diff_sf3.rds")
-    #diff_sf <- st_as_sf(All_sp_df3, coords = c("x", "y"), crs = "+init=epsg:2154")
-    #diff_sf3 <- st_transform(subset(diff_sf, category != "Absence"), crs = 4326)
-    
-    # # Extract coordinates for Leaflet
-    # diff_sf3 <- diff_sf3 %>%
-    #   mutate(lon = st_coordinates(.)[,1], lat = st_coordinates(.)[,2])
-    # 
-    # # Factor conversion for species and category
-    # diff_sf3$species <- factor(diff_sf3$species, levels = c(
-    #   "1" = "F.sylvatica",
-    #   "2" = "Q.petraea",
-    #   "3" = "Q.robur",
-    #   "4" = "Q.pubescens",
-    #   "5" = "Q.ilex"
-    # ))
-    # 
-    # diff_sf3$category <- factor(diff_sf3$category, levels = c(
-    #   "Colonization - Colonization", 
-    #   "Colonization - Presence", 
-    #   "Colonization - Absence", 
-    #   "Colonization - Extinction",
-    #   "Presence - Colonization", 
-    #   "Presence - Extinction", 
-    #   "Presence - Absence", 
-    #   "Extinction - Extinction", 
-    #   "Extinction - Presence",
-    #   "Extinction - Absence", 
-    #   "Extinction - Colonization",
-    #   "Absence - Colonization", 
-    #   "Absence - Extinction",  
-    #   "Absence - Presence", 
-    #   "Presence", 
-    #   "Absence"
-    # ))
     
     # Update UI inputs dynamically after loading data
     updateSelectInput(session, "species", choices = unique(diff_sf3$species))
     updateCheckboxGroupInput(session, "category", choices = levels(diff_sf3$category), selected = levels(diff_sf3$category)[15])
     
-    # Hide the loading spinner after the data is ready
-    removeModal()
+    # Store in reactive container
+    diff_sf3_reactive(diff_sf3)
     
-    # Store the processed data globally to use for filtering
-    assign("diff_sf3", diff_sf3, envir = .GlobalEnv)
+    
+    # Hide the loading spinner after data is ready
+    removeModal()
   })
   
   # Define color mapping for categories
@@ -116,24 +80,27 @@ server <- function(input, output, session) {
   # Create color palette function
   color_pal <- colorFactor(palette = bivariate_colors, domain = NULL)
   
+  # Load world country borders (Natural Earth dataset)
+  world <- ne_countries(scale = "medium", returnclass = "sf")
+  
   # Render Leaflet map
   output$map <- renderLeaflet({
-    # Ensure diff_sf3 is available in global environment
-    diff_sf3 <- get("diff_sf3", envir = .GlobalEnv)
+    req(diff_sf3_reactive())  # Ensure data is available before proceeding
     
-    # Filter data based on user input (species and category)
+    diff_sf3 <- diff_sf3_reactive()  # Access reactive value
+    
+    # Filter data based on user input
     filtered_data <- diff_sf3 %>%
       filter(species == input$species & category %in% input$category)
     
     leaflet(filtered_data) %>%
-      addProviderTiles(providers$CartoDB.PositronNoLabels, group = "Minimal") %>%
-      addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Grayscale") %>%
-      addProviderTiles(providers$Esri.WorldTopoMap, group = "Topographic") %>%
-      addLayersControl(
-        baseGroups = c("Minimal", "Grayscale", "Topographic"),
-        options = layersControlOptions(collapsed = FALSE)
-      ) %>%
       setView(lng = 1.888334, lat = 46.603354, zoom = 6) %>%
+      addPolygons(  
+        data = world,
+        color = "black", weight = 3,
+        fillColor = "white",
+        fillOpacity = 1
+      ) %>%
       addCircleMarkers(
         lng = ~lon, lat = ~lat,
         color = ~color_pal(category),
@@ -152,11 +119,3 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui, server)
-
-
-
-
-
-
-
-
