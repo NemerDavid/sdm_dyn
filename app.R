@@ -563,8 +563,8 @@ server <- function(input, output, session) {
     "Med credit" = "#f4a582",
     "Shifted to med" = "darkgreen",
     "Med" = "darkred",
-    "Mixed" = "lightgreen",
     "Mixed credit"="yellow",
+    "Mixed" = "lightgreen",
     "Temp credit" = "darkblue",
     "Temp" = "black",
     "Temp loss" = "#92c5de",
@@ -610,9 +610,7 @@ server <- function(input, output, session) {
 
     
 
-    
 
-    
     # Create Leaflet Map
     leaflet(filtered_data) %>%
       setView(lng = 1.888334, lat = 46.603354, zoom = 6) %>%  # Focus on France
