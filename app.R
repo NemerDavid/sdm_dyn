@@ -152,10 +152,6 @@ server <- function(input, output, session) {
 
 
   
-  
-
-  setwd("C:/Users/nemer/Project/sdm_dyn_app_v1/sdm_dyn_app_v1")
-  
   # Show loading modal
   showModal(modalDialog(
     title = "Loading Data",
@@ -182,7 +178,7 @@ server <- function(input, output, session) {
   
   observe({
     # Load the dataset
-    diff_fig2 <- readRDS("C:/Users/nemer/Project/sdm_dyn_app_v1/sdm_dyn_app_v1/diff_sf3_fig2.rds")
+    diff_fig2 <- readRDS("diff_sf3_fig2.rds")
     
     
     # Update UI inputs dynamically after loading data
@@ -290,7 +286,7 @@ server <- function(input, output, session) {
   observe({
     # Load the dataset
 
-    diff_fig1 <- readRDS("C:/Users/nemer/Project/sdm_dyn_app_v1/sdm_dyn_app_v1/diff_sf3_fig1.rds")
+    diff_fig1 <- readRDS("diff_sf3_fig1.rds")
 
     # Update UI inputs dynamically after loading data
     updateSelectInput(session, "species", choices = unique(diff_fig1$species))
@@ -386,7 +382,7 @@ server <- function(input, output, session) {
 
   observe({
     # Load the dataset
-    diff_fig3 <- readRDS("C:/Users/nemer/Project/sdm_dyn_app_v1/sdm_dyn_app_v1/diff_sf3_fig3.rds")
+    diff_fig3 <- readRDS("diff_sf3_fig3.rds")
 
 
     # Update UI inputs dynamically after loading data
