@@ -1,3 +1,23 @@
+required_packages <- c(
+  "shiny", "leaflet", "sf", "dplyr", "rnaturalearth", "rnaturalearthdata",
+  "tidyverse", "shinyjs", "terra", "raster"
+)
+
+# Function to install missing packages
+install_if_missing <- function(packages) {
+  for (pkg in packages) {
+    if (!require(pkg, character.only = TRUE)) {
+      install.packages(pkg, dependencies = TRUE)
+      library(pkg, character.only = TRUE)
+    }
+  }
+}
+
+install_if_missing(required_packages)
+
+
+
+
 library(shiny)
 library(leaflet)
 library(sf)
@@ -6,8 +26,6 @@ library(rnaturalearth)
 library(rnaturalearthdata)
 library(tidyverse)
 library(shinyjs)
-
-
 library(terra)
 library(sf)
 library(raster)
