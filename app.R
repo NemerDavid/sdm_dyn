@@ -178,26 +178,50 @@ ui <- navbarPage("Species Distribution Modeling",
 
 
 
-
-                 tabPanel("Step 1: Figure 1",
+                 
+                 
+                 tabPanel("Figure 3",
                           sidebarLayout(
                             sidebarPanel(
                               h4("Visualization Parameters"),
-                              # selectInput("species", "Select Species:", choices = unique(diff_sf3_fig1$species)),
-                              # selectInput("SSP", "Select SSP:", choices = unique(diff_sf3_fig1$SSP)),
-
+                              selectInput("species2", "Select Species:", choices = NULL),
+                              selectInput("SSP2", "Select SSP:", choices = NULL),
+                              selectInput("Model2", "Select Model:", choices = NULL),
+                              
                               # "Select All" Checkbox
-                              #checkboxInput("select_all", "Select all", value = FALSE),
+                              checkboxInput("select_all2", "Select all", value = FALSE),
+                              
+                              # Checkbox Group Input for Categories
+                              checkboxGroupInput("category2",
+                                                 label = HTML("category"), # Adds spaces before the label
+                                                 choices = NULL)
+                              
+                              
+                              
+                              
+                              
+                              
+                              
+                            ),
+                            
+                    
+                   
+                          
+                            mainPanel(
+                              leafletOutput("map_pa", width = "100%", height = 800),
+                              leafletOutput("map", width = "100%", height = 800)
+                            )
+                          )
+                 ),
+                 
+                 
+                 
+                 
 
-                              # # Checkbox Group Input for Categories
-                              # checkboxGroupInput("category",
-                              #                    label = HTML("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Base&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-
-                              #        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Extreme:"), # Adds spaces before the label
-                              #                    choices = levels(diff_sf3_fig1$category),
-                              #                    selected = unique(diff_sf3_fig1$category)[10])
-
-
-
+                 tabPanel("Figure 4",
+                          sidebarLayout(
+                            sidebarPanel(
+                              h4("Visualization Parameters"),
 
                               selectInput("species", "Select Species:", choices = NULL),  # Empty initially
                               selectInput("SSP", "Select SPP:", choices = NULL),
@@ -218,37 +242,7 @@ ui <- navbarPage("Species Distribution Modeling",
 
                             ),
                             mainPanel(
-                              leafletOutput("map", width = "100%", height = 800)
-                            )
-                          )
-                 ),
-
-
-
-
-
-
-                 tabPanel("Step 2: Figure 2",
-                          sidebarLayout(
-                            sidebarPanel(
-                              h4("Visualization Parameters"),
-                              selectInput("species2", "Select Species:", choices = NULL),
-                              selectInput("SSP2", "Select SSP:", choices = NULL),
-                              selectInput("Model2", "Select Model:", choices = NULL),
-
-                              # "Select All" Checkbox
-                              checkboxInput("select_all2", "Select all", value = FALSE),
-
-                              # Checkbox Group Input for Categories
-                              checkboxGroupInput("category2",
-                                                 label = HTML("category"), # Adds spaces before the label
-                                                 choices = NULL)
-
-
-
-
-                            ),
-                            mainPanel(
+                              #leafletOutput("map_pa2", width = "100%", height = 800),
                               leafletOutput("map2", width = "100%", height = 800)
                             )
                           )
@@ -258,7 +252,12 @@ ui <- navbarPage("Species Distribution Modeling",
 
 
 
-                 tabPanel("Step 3: Figure 3",
+
+
+
+
+
+                 tabPanel("Figure 5 - Biome shift",
                           sidebarLayout(
                             sidebarPanel(
                               h4("Visualization Parameters"),
@@ -278,6 +277,7 @@ ui <- navbarPage("Species Distribution Modeling",
 
                             ),
                             mainPanel(
+                              #leafletOutput("map_pa3", width = "100%", height = 800),
                               leafletOutput("map3", width = "100%", height = 800)
                             )
                           )
@@ -293,8 +293,6 @@ ui <- navbarPage("Species Distribution Modeling",
 
 server <- function(input, output, session) {
 
-  #########################################
-  ############## Figure 1 #################
 
 
 
@@ -306,6 +304,202 @@ server <- function(input, output, session) {
     footer = NULL
   ))
 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  #########################################
+  ############## Figure 3 #################
+  
+  
+  
+  
+  
+  # Show loading modal
+  showModal(modalDialog(
+    title = "Loading Data",
+    "Please wait while the data is being loaded...",
+    easyClose = FALSE,
+    footer = NULL
+  ))
+  
+  
+  # Define a reactive value to store the dataset
+  diff_sf3_reactive2 <- reactiveVal(NULL)
+  
+  observe({
+    # Load the dataset
+    diff_fig2 <- readRDS("C:/Users/nemer/Project/sdm_dyn_app_v1/sdm_dyn_app_v1/diff_sf3_fig2.rds")
+    
+    
+    # Update UI inputs dynamically after loading data
+    updateSelectInput(session, "species2", choices = unique(diff_fig2$species))
+    updateSelectInput(session, "SSP2", choices = unique(diff_fig2$SSP))
+    updateSelectInput(session, "Model2", choices = unique(diff_fig2$Model))
+    updateCheckboxGroupInput(session, "category2", choices = levels(diff_fig2$category), selected = levels(diff_fig2$category)[3])
+    
+    
+    # Store in reactive container
+    diff_sf3_reactive2(diff_fig2)
+    
+    
+    # Hide the loading spinner after data is ready
+    removeModal()
+  })
+  
+  
+  
+  
+  
+  # Observe "Select All" Checkbox
+  observeEvent(input$select_all2, {
+    if (input$select_all2) {
+      updateCheckboxGroupInput(session, "category2", selected = levels(diff_sf3_reactive2()$category))
+    } else {
+      updateCheckboxGroupInput(session, "category2", selected = levels(diff_sf3_reactive2()$category)[3])  # Deselect all
+    }
+  })
+  
+  
+  
+  
+  
+  
+  
+  
+  fig2_colors= c(#"Absence" = "white",       # No forest
+    #"Forest" = "gray",    # Forest present (with transparency)
+    "Loss" = "darkblue",       # Existing category colors
+    "Maintained" = "saddlebrown", # More natural color (brown/olive)
+    "Gained" = "green")
+  
+  
+  
+  
+  
+  
+  
+  
+  # Initialize map when app starts
+  output$map_pa <- renderLeaflet({
+    leaflet() %>%
+      addTiles() %>%
+      setView(lng = 0, lat = 0, zoom = 2)  # Default empty map
+  })
+  
+  
+  
+  
+  
+  
+  
+  output$map <- renderLeaflet({
+    
+    req(diff_sf3_reactive2())  # Ensure data is available before proceeding
+    
+    diff_sf3_fig2 <- diff_sf3_reactive2()  # Access reactive value
+    
+    
+    # Filter data based on selected inputs
+    filtered_data <- diff_sf3_fig2 %>%
+      filter(species == input$species2 & category %in% input$category2 & SSP == input$SSP2 & Model  == input$Model2)
+    
+    
+    #
+    # # Filter data based on selected inputs
+    # filtered_data <- diff_sf3 %>%
+    #   filter(species == "F.sylvatica"& category %in% category & SSP == "ssp370")
+    
+    # Convert 'category' from factor to numeric index
+    filtered_data$category <- as.factor(filtered_data$category)
+    filtered_data$category_numeric <- as.numeric(filtered_data$category)
+    
+    # Create raster using numeric category values
+    r_filtered <- rasterFromXYZ(filtered_data[, c("x", "y", "category_numeric")])
+    crs(r_filtered) <- CRS("+init=epsg:2154")
+    
+    #r_filtered2 <- projectRaster(r_filtered, crs = CRS("+proj=longlat +datum=WGS84"))
+    
+    
+    
+    r_filtered2 <- projectRaster(r_filtered, crs = CRS("+proj=longlat +datum=WGS84"), res = c(0.01, 0.01))
+    
+    
+    
+    category_levels <- levels(filtered_data$category)
+    
+    pal2 <- colorFactor(palette = fig2_colors, domain = filtered_data$category, na.color = "transparent")
+    pal <- colorFactor(palette = fig2_colors, domain = 1:3, na.color = "transparent")
+    
+    # # Create Leaflet Map
+    # leaflet(filtered_data) %>%
+    #   setView(lng = 1.888334, lat = 46.603354, zoom = 6) %>%  # Focus on France
+    #   addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Grayscale") %>%
+    #   addRasterImage(r_filtered2, colors = pal, opacity = 0.8) %>%
+    #   addLegend(
+    #     "bottomright",
+    #     pal = pal2,
+    #     values = filtered_data$category,
+    #     title = paste("category"),
+    #     opacity = 0.8
+    #   )
+    
+    
+    
+    
+    
+    
+    
+    
+    leafletProxy("map_pa",data = filtered_data) %>%
+      clearMarkers() %>%
+      clearControls() %>%  # Clear previous legends
+      setView(lng = 1.888334, lat = 46.603354, zoom = 6) %>%  # Focus on France
+      addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Grayscale") %>%
+      addRasterImage(r_filtered2, colors = pal, opacity = 0.8) %>%
+      addLegend(
+        "bottomright",
+        pal = pal2,
+        values = filtered_data$category,
+        title = paste("category"),
+        opacity = 0.8
+      )
+    
+    
+    
+  })
+  
+  
+  
+  
+  
+  
+  
+  
+  #########################################
+  #########################################
+  ############## Figure 4 #################
+  
+  
+  
+  
+  # # Show loading modal
+  # showModal(modalDialog(
+  #   title = "Loading Data",
+  #   "Please wait while the data is being loaded...",
+  #   easyClose = FALSE,
+  #   footer = NULL
+  # ))
+  # 
+  
+  
 
   # Define a reactive value to store the dataset
   diff_sf3_reactive <- reactiveVal(NULL)
@@ -372,11 +566,17 @@ server <- function(input, output, session) {
 
 
 
+  # # Initialize map when app starts
+  # output$map_pa <- renderLeaflet({
+  #   leaflet() %>%
+  #     addTiles() %>%
+  #     setView(lng = 0, lat = 0, zoom = 2)  # Default empty map
+  # })
+  
 
 
 
-
-  output$map <- renderLeaflet({
+  output$map2 <- renderLeaflet({
 
     req(diff_sf3_reactive())  # Ensure data is available before proceeding
 
@@ -427,9 +627,30 @@ server <- function(input, output, session) {
         title = paste("Model                :","Base - Extreme"),
         opacity = 0.8
       )
+    
+    
+    
+    
+    # leafletProxy("map_pa",data = filtered_data) %>%
+    #   clearMarkers() %>%
+    #   clearControls() %>%  # Clear previous legends
+    #   setView(lng = 1.888334, lat = 46.603354, zoom = 6) %>%  # Focus on France
+    #   addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Grayscale") %>%
+    #   addRasterImage(r_filtered2, colors = pal, opacity = 0.8) %>%
+    #   addLegend(
+    #     "bottomright",
+    #     pal = pal2,
+    #     values = filtered_data$category,
+    #     title = paste("Model                :","Base - Extreme"),
+    #     opacity = 0.8
+    #   )
+    
+    
+    
+    
+    
+    
   })
-
-
 
 
 
@@ -442,127 +663,7 @@ server <- function(input, output, session) {
 
 
   #########################################
-  ############## Figure 2 #################
-
-
-
-
-
-  # Show loading modal
-  showModal(modalDialog(
-    title = "Loading Data",
-    "Please wait while the data is being loaded...",
-    easyClose = FALSE,
-    footer = NULL
-  ))
-
-
-  # Define a reactive value to store the dataset
-  diff_sf3_reactive2 <- reactiveVal(NULL)
-
-  observe({
-    # Load the dataset
-    diff_fig2 <- readRDS("C:/Users/nemer/Project/sdm_dyn_app_v1/sdm_dyn_app_v1/diff_sf3_fig2.rds")
-
-
-    # Update UI inputs dynamically after loading data
-    updateSelectInput(session, "species2", choices = unique(diff_fig2$species))
-    updateSelectInput(session, "SSP2", choices = unique(diff_fig2$SSP))
-    updateSelectInput(session, "Model2", choices = unique(diff_fig2$Model))
-    updateCheckboxGroupInput(session, "category2", choices = levels(diff_fig2$category), selected = levels(diff_fig2$category)[3])
-
-
-    # Store in reactive container
-    diff_sf3_reactive2(diff_fig2)
-
-
-    # Hide the loading spinner after data is ready
-    removeModal()
-  })
-
-
-
-
-
-  # Observe "Select All" Checkbox
-  observeEvent(input$select_all2, {
-    if (input$select_all2) {
-      updateCheckboxGroupInput(session, "category2", selected = levels(diff_sf3_reactive2()$category))
-    } else {
-      updateCheckboxGroupInput(session, "category2", selected = levels(diff_sf3_reactive2()$category)[3])  # Deselect all
-    }
-  })
-
-
-
-
-
-
-
-
-  fig2_colors= c(#"Absence" = "white",       # No forest
-    #"Forest" = "gray",    # Forest present (with transparency)
-    "Loss" = "darkblue",       # Existing category colors
-    "Maintained" = "saddlebrown", # More natural color (brown/olive)
-    "Gained" = "green")
-
-
-
-  output$map2 <- renderLeaflet({
-
-    req(diff_sf3_reactive2())  # Ensure data is available before proceeding
-
-    diff_sf3_fig2 <- diff_sf3_reactive2()  # Access reactive value
-
-
-    # Filter data based on selected inputs
-    filtered_data <- diff_sf3_fig2 %>%
-      filter(species == input$species2 & category %in% input$category2 & SSP == input$SSP2 & Model  == input$Model2)
-
-
-    #
-    # # Filter data based on selected inputs
-    # filtered_data <- diff_sf3 %>%
-    #   filter(species == "F.sylvatica"& category %in% category & SSP == "ssp370")
-
-    # Convert 'category' from factor to numeric index
-    filtered_data$category <- as.factor(filtered_data$category)
-    filtered_data$category_numeric <- as.numeric(filtered_data$category)
-
-    # Create raster using numeric category values
-    r_filtered <- rasterFromXYZ(filtered_data[, c("x", "y", "category_numeric")])
-    crs(r_filtered) <- CRS("+init=epsg:2154")
-
-    #r_filtered2 <- projectRaster(r_filtered, crs = CRS("+proj=longlat +datum=WGS84"))
-
-
-
-    r_filtered2 <- projectRaster(r_filtered, crs = CRS("+proj=longlat +datum=WGS84"), res = c(0.01, 0.01))
-
-
-
-    category_levels <- levels(filtered_data$category)
-
-    pal2 <- colorFactor(palette = fig2_colors, domain = filtered_data$category, na.color = "transparent")
-    pal <- colorFactor(palette = fig2_colors, domain = 1:3, na.color = "transparent")
-
-    # Create Leaflet Map
-    leaflet(filtered_data) %>%
-      setView(lng = 1.888334, lat = 46.603354, zoom = 6) %>%  # Focus on France
-      addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Grayscale") %>%
-      addRasterImage(r_filtered2, colors = pal, opacity = 0.8) %>%
-      addLegend(
-        "bottomright",
-        pal = pal2,
-        values = filtered_data$category,
-        title = paste("category"),
-        opacity = 0.8
-      )
-  })
-
-
-  #########################################
-  ############## Figure 3 #################
+  ############## Figure 5 #################
 
 
 
@@ -622,6 +723,18 @@ server <- function(input, output, session) {
     "Non-Forest"="white",
     "Other-Forest"="darkgray"
   )
+  
+  
+  
+  # # Initialize map when app starts
+  # output$map_pa3 <- renderLeaflet({
+  #   leaflet() %>%
+  #     addTiles() %>%
+  #     setView(lng = 0, lat = 0, zoom = 2)  # Default empty map
+  # })
+  
+  
+  
 
   output$map3 <- renderLeaflet({
 
@@ -665,6 +778,35 @@ server <- function(input, output, session) {
         title = paste("category"),
         opacity = 1
       )
+    
+    
+    
+    
+    # 
+    # leafletProxy("map_pa3",data = filtered_data) %>%
+    #   clearMarkers() %>%
+    #   clearControls() %>%  # Clear previous legends
+    #     setView(lng = 1.888334, lat = 46.603354, zoom = 6) %>%  # Focus on France
+    #     addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Grayscale") %>%
+    #     addRasterImage(r_filtered2, colors = pal, opacity = 1) %>%
+    #     addLegend(
+    #       "bottomright",
+    #       pal = pal2,
+    #       values = filtered_data$category,
+    #       title = paste("category"),
+    #       opacity = 1
+    #     )
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
   })
 
 
