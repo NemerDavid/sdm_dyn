@@ -293,9 +293,6 @@ ui <- navbarPage("Species Distribution Modeling",
 
 server <- function(input, output, session) {
 
-
-
-
   # Show loading modal
   showModal(modalDialog(
     title = "Loading Data",
@@ -304,24 +301,10 @@ server <- function(input, output, session) {
     footer = NULL
   ))
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
   #########################################
   ############## Figure 3 #################
-  
-  
-  
-  
-  
+ 
   # Show loading modal
   showModal(modalDialog(
     title = "Loading Data",
@@ -354,9 +337,7 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  
-  
-  
+
   
   # Observe "Select All" Checkbox
   observeEvent(input$select_all2, {
@@ -366,13 +347,7 @@ server <- function(input, output, session) {
       updateCheckboxGroupInput(session, "category2", selected = levels(diff_sf3_reactive2()$category)[3])  # Deselect all
     }
   })
-  
-  
-  
-  
-  
-  
-  
+
   
   fig2_colors= c(#"Absence" = "white",       # No forest
     #"Forest" = "gray",    # Forest present (with transparency)
@@ -380,12 +355,7 @@ server <- function(input, output, session) {
     "Maintained" = "saddlebrown", # More natural color (brown/olive)
     "Gained" = "green")
   
-  
-  
-  
-  
-  
-  
+
   
   # Initialize map when app starts
   output$map_pa <- renderLeaflet({
@@ -393,12 +363,7 @@ server <- function(input, output, session) {
       addTiles() %>%
       setView(lng = 0, lat = 0, zoom = 2)  # Default empty map
   })
-  
-  
-  
-  
-  
-  
+ 
   
   output$map <- renderLeaflet({
     
@@ -411,12 +376,7 @@ server <- function(input, output, session) {
     filtered_data <- diff_sf3_fig2 %>%
       filter(species == input$species2 & category %in% input$category2 & SSP == input$SSP2 & Model  == input$Model2)
     
-    
-    #
-    # # Filter data based on selected inputs
-    # filtered_data <- diff_sf3 %>%
-    #   filter(species == "F.sylvatica"& category %in% category & SSP == "ssp370")
-    
+  
     # Convert 'category' from factor to numeric index
     filtered_data$category <- as.factor(filtered_data$category)
     filtered_data$category_numeric <- as.numeric(filtered_data$category)
@@ -425,11 +385,9 @@ server <- function(input, output, session) {
     r_filtered <- rasterFromXYZ(filtered_data[, c("x", "y", "category_numeric")])
     crs(r_filtered) <- CRS("+init=epsg:2154")
     
-    #r_filtered2 <- projectRaster(r_filtered, crs = CRS("+proj=longlat +datum=WGS84"))
+  
     
-    
-    
-    r_filtered2 <- projectRaster(r_filtered, crs = CRS("+proj=longlat +datum=WGS84"), res = c(0.01, 0.01))
+    #r_filtered2 <- projectRaster(r_filtered, crs = CRS("+proj=longlat +datum=WGS84"), res = c(0.01, 0.01))
     
     
     
@@ -437,33 +395,13 @@ server <- function(input, output, session) {
     
     pal2 <- colorFactor(palette = fig2_colors, domain = filtered_data$category, na.color = "transparent")
     pal <- colorFactor(palette = fig2_colors, domain = 1:3, na.color = "transparent")
-    
-    # # Create Leaflet Map
-    # leaflet(filtered_data) %>%
-    #   setView(lng = 1.888334, lat = 46.603354, zoom = 6) %>%  # Focus on France
-    #   addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Grayscale") %>%
-    #   addRasterImage(r_filtered2, colors = pal, opacity = 0.8) %>%
-    #   addLegend(
-    #     "bottomright",
-    #     pal = pal2,
-    #     values = filtered_data$category,
-    #     title = paste("category"),
-    #     opacity = 0.8
-    #   )
-    
-    
-    
-    
-    
-    
-    
-    
+   
     leafletProxy("map_pa",data = filtered_data) %>%
       clearMarkers() %>%
       clearControls() %>%  # Clear previous legends
       setView(lng = 1.888334, lat = 46.603354, zoom = 6) %>%  # Focus on France
       addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Grayscale") %>%
-      addRasterImage(r_filtered2, colors = pal, opacity = 0.8) %>%
+      addRasterImage(r_filtered, colors = pal, opacity = 0.8) %>%
       addLegend(
         "bottomright",
         pal = pal2,
@@ -475,30 +413,12 @@ server <- function(input, output, session) {
     
     
   })
-  
-  
-  
-  
-  
-  
-  
+
   
   #########################################
   #########################################
   ############## Figure 4 #################
-  
-  
-  
-  
-  # # Show loading modal
-  # showModal(modalDialog(
-  #   title = "Loading Data",
-  #   "Please wait while the data is being loaded...",
-  #   easyClose = FALSE,
-  #   footer = NULL
-  # ))
-  # 
-  
+
   
 
   # Define a reactive value to store the dataset
@@ -506,8 +426,6 @@ server <- function(input, output, session) {
 
   observe({
     # Load the dataset
-
-
 
     diff_fig1 <- readRDS("C:/Users/nemer/Project/sdm_dyn_app_v1/sdm_dyn_app_v1/diff_sf3_fig1.rds")
 
@@ -525,8 +443,6 @@ server <- function(input, output, session) {
   })
 
 
-
-
   # Observe "Select All" Checkbox
   observeEvent(input$select_all, {
     if (input$select_all) {
@@ -535,8 +451,6 @@ server <- function(input, output, session) {
       updateCheckboxGroupInput(session, "category", selected = levels(diff_sf3_reactive()$category)[1])  # Deselect all
     }
   })
-
-
 
 
   # Define color mapping for categories
@@ -559,23 +473,6 @@ server <- function(input, output, session) {
     #"Absence" = "#DCDCDC"
   )
 
-  # Create color palette function
-  #color_pal <- colorFactor(palette = bivariate_colors, domain = NULL)
-
-
-
-
-
-  # # Initialize map when app starts
-  # output$map_pa <- renderLeaflet({
-  #   leaflet() %>%
-  #     addTiles() %>%
-  #     setView(lng = 0, lat = 0, zoom = 2)  # Default empty map
-  # })
-  
-
-
-
   output$map2 <- renderLeaflet({
 
     req(diff_sf3_reactive())  # Ensure data is available before proceeding
@@ -583,18 +480,9 @@ server <- function(input, output, session) {
     diff_sf3_fig1 <- diff_sf3_reactive()  # Access reactive value
 
 
-
-
-
-
-
-
-
     # Filter data based on selected inputs
     filtered_data <- diff_sf3_fig1 %>%
       filter(species == input$species & category %in% input$category & SSP == input$SSP)
-
-
 
 
     # Convert 'category' from factor to numeric index
@@ -605,11 +493,8 @@ server <- function(input, output, session) {
     r_filtered <- rasterFromXYZ(filtered_data[, c("x", "y", "category_numeric")])
     crs(r_filtered) <- CRS("+init=epsg:2154")
 
-    #r_filtered2 <- projectRaster(r_filtered, crs = CRS("+proj=longlat +datum=WGS84"))
-
-
-
-    r_filtered2 <- projectRaster(r_filtered, crs = CRS("+proj=longlat +datum=WGS84"), res = c(0.01, 0.01))
+  
+   # r_filtered2 <- projectRaster(r_filtered, crs = CRS("+proj=longlat +datum=WGS84"), res = c(0.01, 0.01))
 
 
     pal2 <- colorFactor(palette = bivariate_colors, domain = filtered_data$category, na.color = "transparent")
@@ -619,7 +504,7 @@ server <- function(input, output, session) {
     leaflet(filtered_data) %>%
       setView(lng = 1.888334, lat = 46.603354, zoom = 6) %>%  # Focus on France
       addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Grayscale") %>%
-      addRasterImage(r_filtered2, colors = pal, opacity = 0.8) %>%
+      addRasterImage(r_filtered, colors = pal, opacity = 0.8) %>%
       addLegend(
         "bottomright",
         pal = pal2,
@@ -627,49 +512,12 @@ server <- function(input, output, session) {
         title = paste("Model                :","Base - Extreme"),
         opacity = 0.8
       )
-    
-    
-    
-    
-    # leafletProxy("map_pa",data = filtered_data) %>%
-    #   clearMarkers() %>%
-    #   clearControls() %>%  # Clear previous legends
-    #   setView(lng = 1.888334, lat = 46.603354, zoom = 6) %>%  # Focus on France
-    #   addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Grayscale") %>%
-    #   addRasterImage(r_filtered2, colors = pal, opacity = 0.8) %>%
-    #   addLegend(
-    #     "bottomright",
-    #     pal = pal2,
-    #     values = filtered_data$category,
-    #     title = paste("Model                :","Base - Extreme"),
-    #     opacity = 0.8
-    #   )
-    
-    
-    
-    
-    
-    
+
   })
-
-
-
-
-
-
-
-
-
 
 
   #########################################
   ############## Figure 5 #################
-
-
-
-
-
-
   # Define a reactive value to store the dataset
   diff_sf3_reactive3 <- reactiveVal(NULL)
 
@@ -718,22 +566,13 @@ server <- function(input, output, session) {
     "Mixed" = "lightgreen",
     "Mixed credit"="yellow",
     "Temp credit" = "darkblue",
-    "Temp loss" = "#92c5de",
     "Temp" = "black",
-    "Non-Forest"="white",
+    "Temp loss" = "#92c5de",
+    #"Non-Forest"="white",
     "Other-Forest"="darkgray"
   )
   
-  
-  
-  # # Initialize map when app starts
-  # output$map_pa3 <- renderLeaflet({
-  #   leaflet() %>%
-  #     addTiles() %>%
-  #     setView(lng = 0, lat = 0, zoom = 2)  # Default empty map
-  # })
-  
-  
+
   
 
   output$map3 <- renderLeaflet({
@@ -749,15 +588,18 @@ server <- function(input, output, session) {
       filter(category %in% input$category3 & Model_SSP == input$SSP3)
     filtered_data$category_numeric <- as.numeric(filtered_data$category)
 
+    
+
+    
     # Create raster using numeric category values
     r_filtered <- rasterFromXYZ(filtered_data[, c("x", "y", "category_numeric")])
     crs(r_filtered) <- CRS("+init=epsg:2154")
 
-    r_filtered2 <- projectRaster(r_filtered, crs = CRS("+proj=longlat +datum=WGS84"))
+    #r_filtered2 <- projectRaster(r_filtered, crs = CRS("+proj=longlat +datum=WGS84"))
 
 
 
-    r_filtered2 <- projectRaster(r_filtered, crs = CRS("+proj=longlat +datum=WGS84"), res = c(0.01, 0.01))
+    #r_filtered2 <- projectRaster(r_filtered, crs = CRS("+proj=longlat +datum=WGS84"), res = c(0.01, 0.01))
 
 
 
@@ -766,11 +608,16 @@ server <- function(input, output, session) {
     pal2 <- colorFactor(palette = biome_colors, domain = filtered_data$category, na.color = "transparent")
     pal <- colorFactor(palette = biome_colors, domain = 1:9, na.color = "transparent")
 
+    
+
+    
+
+    
     # Create Leaflet Map
     leaflet(filtered_data) %>%
       setView(lng = 1.888334, lat = 46.603354, zoom = 6) %>%  # Focus on France
       addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Grayscale") %>%
-      addRasterImage(r_filtered2, colors = pal, opacity = 1) %>%
+      addRasterImage(r_filtered, colors = pal, opacity = 1) %>%
       addLegend(
         "bottomright",
         pal = pal2,
@@ -779,25 +626,8 @@ server <- function(input, output, session) {
         opacity = 1
       )
     
-    
-    
-    
-    # 
-    # leafletProxy("map_pa3",data = filtered_data) %>%
-    #   clearMarkers() %>%
-    #   clearControls() %>%  # Clear previous legends
-    #     setView(lng = 1.888334, lat = 46.603354, zoom = 6) %>%  # Focus on France
-    #     addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Grayscale") %>%
-    #     addRasterImage(r_filtered2, colors = pal, opacity = 1) %>%
-    #     addLegend(
-    #       "bottomright",
-    #       pal = pal2,
-    #       values = filtered_data$category,
-    #       title = paste("category"),
-    #       opacity = 1
-    #     )
-    
-    
+
+
     
     
     
