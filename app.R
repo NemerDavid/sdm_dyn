@@ -138,7 +138,36 @@ ui <- navbarPage("Species Distribution Modeling",
                               leafletOutput("map3", width = "100%", height = 800)
                             )
                           )
+                 ),
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 tabPanel("Figure 6 - Agreement plot",
+                          sidebarLayout(
+                            sidebarPanel(
+                              h4("Visualization Parameters"),
+                              
+                              selectInput("SSP4", "Select SSP:", choices = c("Loading...")),
+                              
+                              
+                              radioButtons("category4", "Category", choices = c("Loading..."))
+                              
+                              
+                              
+                            ),
+                            mainPanel(
+                              #leafletOutput("map_pa3", width = "100%", height = 800),
+                              leafletOutput("map4", width = "100%", height = 800)
+                            )
+                          )
                  )
+                 
+                 
+                 
 
 
 
@@ -174,7 +203,7 @@ server <- function(input, output, session) {
   
   
   # Define a reactive value to store the dataset
-  diff_sf3_reactive2 <- reactiveVal(NULL)
+  diff_reactive2 <- reactiveVal(NULL)
   
   observe({
     # Load the dataset
@@ -189,7 +218,7 @@ server <- function(input, output, session) {
     
     
     # Store in reactive container
-    diff_sf3_reactive2(diff_fig2)
+    diff_reactive2(diff_fig2)
     
     
     # Hide the loading spinner after data is ready
@@ -201,9 +230,9 @@ server <- function(input, output, session) {
   # Observe "Select All" Checkbox
   observeEvent(input$select_all2, {
     if (input$select_all2) {
-      updateCheckboxGroupInput(session, "category2", selected = levels(diff_sf3_reactive2()$category))
+      updateCheckboxGroupInput(session, "category2", selected = levels(diff_reactive2()$category))
     } else {
-      updateCheckboxGroupInput(session, "category2", selected = levels(diff_sf3_reactive2()$category)[3])  # Deselect all
+      updateCheckboxGroupInput(session, "category2", selected = levels(diff_reactive2()$category)[3])  # Deselect all
     }
   })
 
@@ -226,13 +255,13 @@ server <- function(input, output, session) {
   
   output$map <- renderLeaflet({
     
-    req(diff_sf3_reactive2())  # Ensure data is available before proceeding
+    req(diff_reactive2())  # Ensure data is available before proceeding
     
-    diff_sf3_fig2 <- diff_sf3_reactive2()  # Access reactive value
+    diff_fig2 <- diff_reactive2()  # Access reactive value
     
     
     # Filter data based on selected inputs
-    filtered_data <- diff_sf3_fig2 %>%
+    filtered_data <- diff_fig2 %>%
       filter(species == input$species2 & category %in% input$category2 & SSP == input$SSP2 & Model  == input$Model2)
     
   
@@ -281,7 +310,7 @@ server <- function(input, output, session) {
   
 
   # Define a reactive value to store the dataset
-  diff_sf3_reactive <- reactiveVal(NULL)
+  diff_reactive <- reactiveVal(NULL)
 
   observe({
     # Load the dataset
@@ -294,7 +323,7 @@ server <- function(input, output, session) {
     updateCheckboxGroupInput(session, "category", choices = levels(diff_fig1$category), selected = levels(diff_fig1$category)[15])
 
     # Store in reactive container
-    diff_sf3_reactive(diff_fig1)
+    diff_reactive(diff_fig1)
 
 
     # Hide the loading spinner after data is ready
@@ -305,9 +334,9 @@ server <- function(input, output, session) {
   # Observe "Select All" Checkbox
   observeEvent(input$select_all, {
     if (input$select_all) {
-      updateCheckboxGroupInput(session, "category", selected = levels(diff_sf3_reactive()$category))
+      updateCheckboxGroupInput(session, "category", selected = levels(diff_reactive()$category))
     } else {
-      updateCheckboxGroupInput(session, "category", selected = levels(diff_sf3_reactive()$category)[1])  # Deselect all
+      updateCheckboxGroupInput(session, "category", selected = levels(diff_reactive()$category)[1])  # Deselect all
     }
   })
 
@@ -334,13 +363,13 @@ server <- function(input, output, session) {
 
   output$map2 <- renderLeaflet({
 
-    req(diff_sf3_reactive())  # Ensure data is available before proceeding
+    req(diff_reactive())  # Ensure data is available before proceeding
 
-    diff_sf3_fig1 <- diff_sf3_reactive()  # Access reactive value
+    diff_fig1 <- diff_reactive()  # Access reactive value
 
 
     # Filter data based on selected inputs
-    filtered_data <- diff_sf3_fig1 %>%
+    filtered_data <- diff_fig1 %>%
       filter(species == input$species & category %in% input$category & SSP == input$SSP)
 
 
@@ -377,8 +406,12 @@ server <- function(input, output, session) {
 
   #########################################
   ############## Figure 5 #################
+  
+  ######------ Biomshift plot ------#####
+  
+  
   # Define a reactive value to store the dataset
-  diff_sf3_reactive3 <- reactiveVal(NULL)
+  diff_reactive3 <- reactiveVal(NULL)
 
   observe({
     # Load the dataset
@@ -393,7 +426,7 @@ server <- function(input, output, session) {
 
 
     # Store in reactive container
-    diff_sf3_reactive3(diff_fig3)
+    diff_reactive3(diff_fig3)
 
 
     # Hide the loading spinner after data is ready
@@ -409,15 +442,18 @@ server <- function(input, output, session) {
   # Observe "Select All" Checkbox
   observeEvent(input$select_all3, {
     if (input$select_all3) {
-      updateCheckboxGroupInput(session, "category3", selected = levels(diff_sf3_reactive3()$category))
+      updateCheckboxGroupInput(session, "category3", selected = levels(diff_reactive3()$category))
     } else {
-      updateCheckboxGroupInput(session, "category3", selected = levels(diff_sf3_reactive3()$category)[1])  # Deselect all
+      updateCheckboxGroupInput(session, "category3", selected = levels(diff_reactive3()$category)[1])  # Deselect all
     }
   })
 
 
 
 
+
+  
+  
   biome_colors <- c(
     "Med credit" = "#f4a582",
     "Shifted to med" = "darkgreen",
@@ -426,24 +462,32 @@ server <- function(input, output, session) {
     "Mixed" = "lightgreen",
     "Temp credit" = "darkblue",
     "Temp" = "black",
+    "Temp debt" = "#1137de",
     "Temp loss" = "#92c5de",
-    #"Non-Forest"="white",
     "Other-Forest"="darkgray"
   )
   
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
 
   output$map3 <- renderLeaflet({
 
 
-    req(diff_sf3_reactive3())  # Ensure data is available before proceeding
-    diff_sf3_fig3 <- diff_sf3_reactive3()  # Access reactive value
+    req(diff_reactive3())  # Ensure data is available before proceeding
+    diff_fig3 <- diff_reactive3()  # Access reactive value
 
 
 
     # Filter data based on selected inputs
-    filtered_data <- diff_sf3_fig3 %>%
+    filtered_data <- diff_fig3 %>%
       filter(category %in% input$category3 & Model_SSP == input$SSP3)
     filtered_data$category_numeric <- as.numeric(filtered_data$category)
 
@@ -454,18 +498,12 @@ server <- function(input, output, session) {
     r_filtered <- rasterFromXYZ(filtered_data[, c("x", "y", "category_numeric")])
     crs(r_filtered) <- CRS("+init=epsg:2154")
 
-    #r_filtered2 <- projectRaster(r_filtered, crs = CRS("+proj=longlat +datum=WGS84"))
-
-
-
-    #r_filtered2 <- projectRaster(r_filtered, crs = CRS("+proj=longlat +datum=WGS84"), res = c(0.01, 0.01))
-
 
 
     category_levels <- levels(filtered_data$category)
 
     pal2 <- colorFactor(palette = biome_colors, domain = filtered_data$category, na.color = "transparent")
-    pal <- colorFactor(palette = biome_colors, domain = 1:9, na.color = "transparent")
+    pal <- colorFactor(palette = biome_colors, domain = 1:10, na.color = "transparent")
 
     
 
@@ -483,25 +521,107 @@ server <- function(input, output, session) {
         opacity = 1
       )
     
-
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
   })
 
-
-
-
-
-
-}
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    #########################################
+    ############## Figure 6 #################
+    
+    ######------ Agreement plot ------#####
+    
+    
+    
+    
+    
+    
+    diff_reactive4 <- reactiveVal(NULL)
+    
+    observe({
+      
+      
+      diff_fig4 <- readRDS("diff_sf3_fig4.rds")
+      
+      
+      # req(diff_fig4)  # Make sure it's not NULL
+      
+      updateSelectInput(session, "SSP4", choices = unique(diff_fig4$SSP))
+      
+      categories <- sort(unique(subset(diff_fig4, !cat_Base %in% c("Other-Forest", "Non-Forest"))$cat_Base))
+      
+      updateRadioButtons(session, "category4", choices = categories, selected = categories[1])
+      
+      diff_reactive4(diff_fig4)
+    })
+    
+    
+    
+    color_fig4 = c("Both agree" = "darkgreen","Base only" = "#FDE725", "Extreme only" = "#440154")
+    
+    output$map4 <- renderLeaflet({
+      
+      req(diff_reactive4())  # Ensure data is available before proceeding
+      diff_fig4 <- diff_reactive4()  # Access reactive value
+      
+      
+      filtered_data <- diff_fig4 %>%
+        filter(SSP == input$SSP4) %>%
+        mutate(agreement = case_when(
+          cat_Base == input$category4 & cat_Extreme == input$category4 ~ "Both agree",
+          cat_Base == input$category4 & cat_Extreme != input$category4 ~ "Base only",
+          cat_Base != input$category4 & cat_Extreme == input$category4 ~ "Extreme only",
+          TRUE ~ NA_character_
+        )) %>%
+        filter(!is.na(agreement))  # Keep only relevant pixels
+      
+      
+      
+      
+      # Convert `mean_ens` to factor with proper labels
+      filtered_data$agreement <- factor(filtered_data$agreement,
+                                        levels = c(
+                                          "Both agree",
+                                          "Base only" , "Extreme only"))
+      
+      
+      filtered_data$category_numeric <- as.numeric(filtered_data$agreement)
+      
+      # Create raster using numeric category values
+      r_filtered <- rasterFromXYZ(filtered_data[, c("x", "y", "category_numeric")])
+      crs(r_filtered) <- CRS("+init=epsg:2154")
+      
+      
+      category_levels <- levels(filtered_data$agreement)
+      
+      pal2 <- colorFactor(palette = color_fig4, domain = filtered_data$agreement, na.color = "transparent")
+      pal <- colorFactor(palette = color_fig4, domain = 1:3, na.color = "transparent")
+      
+      # Create Leaflet Map
+      leaflet(filtered_data) %>%
+        setView(lng = 1.888334, lat = 46.603354, zoom = 6) %>%  # Focus on France
+        addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Grayscale") %>%
+        addRasterImage(r_filtered, colors = pal, opacity = 1) %>%
+        addLegend(
+          "bottomright",
+          pal = pal2,
+          values = filtered_data$agreement,
+          title = paste("Agreement"),
+          opacity = 1
+        )
+ 
+})
+    
+  }
 
 shinyApp(ui, server)
 
