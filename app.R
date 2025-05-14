@@ -114,7 +114,7 @@ ui <- navbarPage("Species Distribution Modeling",
 
 
 
-                 tabPanel("Figure 5 - Biome shift",
+                 tabPanel("Figure 5-A) Biome shift",
                           sidebarLayout(
                             sidebarPanel(
                               h4("Visualization Parameters"),
@@ -146,7 +146,7 @@ ui <- navbarPage("Species Distribution Modeling",
                  
                  
                  
-                 tabPanel("Figure 6 - Agreement plot",
+                 tabPanel("Figure 5-B) Agreement plot",
                           sidebarLayout(
                             sidebarPanel(
                               h4("Visualization Parameters"),
